@@ -16,8 +16,11 @@ $router->get('/', function () use ($router) {
 });
 
 $router->get('courses', 'CourseController@all_courses');
-
 $router->get('topics', 'CourseController@topics');
-
 $router->get('sub-topics', 'CourseController@sub_topics');
+
+$router->get('course/show', 'CourseController@show_course');
+$router->get('topic/show', 'CourseController@show_topic');
+$router->get('sub-topic/show', 'CourseController@show_sub_topic');
+
 

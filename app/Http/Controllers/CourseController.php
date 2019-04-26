@@ -94,7 +94,7 @@ class CourseController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function showCourse(Request $request)
+    public function show_course(Request $request)
     {
         // Validate Request
         $validator = Validator::make($request->all(), [
@@ -121,7 +121,7 @@ class CourseController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function showTopic(Request $request)
+    public function show_topic(Request $request)
     {
         // Validate Request
         $validator = Validator::make($request->all(), [
@@ -148,7 +148,7 @@ class CourseController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function showSubTopic(Request $request)
+    public function show_sub_topic(Request $request)
     {
         // Validate Request
         $validator = Validator::make($request->all(), [
