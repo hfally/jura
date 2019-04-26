@@ -14,7 +14,7 @@
 $factory->define(\App\Course::class, function (Faker\Generator $faker) {
     return [
         'title' => $faker->unique()->sentence(2),
-        'code' => $faker->unique()->numberBetween(101, 402),
+        'course_code' => $faker->unique()->numberBetween(101, 402),
         'description' => $faker->text,
     ];
 });
