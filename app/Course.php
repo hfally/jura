@@ -14,8 +14,13 @@ class Course extends Model
     protected $guarded = [];
     protected $with = ['topics'];
 
+    /**
+     * Relationship to all immediate topics
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function topics()
     {
-        return $this->hasMany(Topic::class);
+        return $this->hasMany(Topic::class)->whereNull('topic_id');
     }
 }

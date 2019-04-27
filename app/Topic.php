@@ -6,6 +6,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class Topic extends Model
 {
+
+    protected  static function boot()
+    {
+        parent::boot();
+
+        // Update course id of all children topics if parent topic is updated
+        self::updated(function ($topic) {
+            self::where('topic_id', $topic->id)->update([
+                'course_id' => $topic->course_id
+            ]);
+        });
+
+        // Delete all children topics if parent topic is being deleted
+        self::deleting(function ($topic) {
+            self::where('topic_id', $topic->id)->delete();
+        });
+    }
+
     /**
      * The attributes that are mass assignable.
      *

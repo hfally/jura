@@ -3,19 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Course;
-use App\SubTopic;
 use App\Topic;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class CourseController extends Controller
 {
     /**
-     * Get all courses with their topics and corresponding sub topics
+     * Get all courses with their topics and
+     * corresponding sub topics
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function all_courses()
+    public function index()
     {
         $courses = Course::all();
 
@@ -27,145 +28,170 @@ class CourseController extends Controller
     }
 
     /**
-     * Get all topics under a particular course
+     * Get details of a particular course
      *
-     * @param Request $request
+     * @param integer $course_id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function topics(Request $request)
+    public function show($course_id)
     {
-        // Validate Request
-        $validator = Validator::make($request->all(), [
-            'course_id' => 'required|exists:courses,id'
-        ]);
+        $course = Course::find($course_id);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 400,
-                'errors' => $validator->errors(),
-                'message' => 'Bad request.'
-            ]);
+        // If course wasn't found abort request as 404
+        if (!$course) {
+            abort(404);
         }
-
-        $course = Course::find($request->course_id);
-        $topics = $course->topics;
 
         return response()->json([
             'status' => 200,
-            'count' => $topics->count(),
-            'data' => $topics
+            'data' => $course
         ]);
     }
 
     /**
-     * Get all sub topics under a particular topic
+     * Create a course
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function sub_topics(Request $request)
+    public function create(Request $request)
     {
-        // Validate Request
+        // Validate request bag
         $validator = Validator::make($request->all(), [
-            'topic_id' => 'required|exists:topics,id'
+            'title' => 'required | min:5 | unique:courses',
+            'course_code' => 'required | min:3 | unique:courses',
+            'description' => 'required | min:10',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => 400,
-                'errors' => $validator->errors(),
-                'message' => 'Bad request.'
+                'message' => 'Bad request',
+                'errors' => $validator->errors()
             ]);
         }
 
-        $topic = Topic::find($request->topic_id);
-        $sub_topics = $topic->sub_topics;
+        // Create course if validation passes
+        try {
+            $course = Course::create([
+                'title' => $request->title,
+                'course_code' => $request->course_code,
+                'description' => $request->description
+            ]);
 
-        return response()->json([
-            'status' => 200,
-            'count' => $sub_topics->count(),
-            'data' => $sub_topics
-        ]);
+            $response = [
+                'status' => 200,
+                'course' => $course
+            ];
+        } catch (\Exception $e) {
+            // Log error
+
+            // create response
+            $response = [
+                'status' => 500,
+                'message' => 'Something went wrong'
+            ];
+        } finally {
+            return response()->json($response);
+        }
     }
 
     /**
-     * Get details of a course
+     * Update a particular course
      *
+     * @param $course_id
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show_course(Request $request)
+    public function update($course_id, Request $request)
     {
-        // Validate Request
+        $course = Course::find($course_id);
+
+        // If course wasn't found abort request as 404
+        if (!$course) {
+            abort(404);
+        }
+
+        // Validate request bag (At least one of the fields must be provided)
         $validator = Validator::make($request->all(), [
-            'id' => 'required|exists:courses'
+            'title' => "required_without_all:course_code,description | min:5 | unique:courses,title,$course->id",
+            'course_code' => "required_without_all:title,description | min:3 | unique:courses,course_code,$course->id",
+            'description' => 'required_without_all:title,course_code | min:10',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => 400,
-                'errors' => $validator->errors(),
-                'message' => 'Bad request.'
+                'message' => 'Bad request',
+                'errors' => $validator->errors()
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'data' => Course::find($request->id)
-        ]);
+        // Update Course details
+        try {
+            $course->update([
+                'title' => $request->title ?? $course->title,
+                'course_code' => $request->course_code ?? $course->course_code,
+                'description' => $request->description ?? $course->description,
+            ]);
+
+            $response = [
+                'status' => 200,
+                'course' => $course
+            ];
+        } catch (\Exception $e) {
+            // Log error
+
+            // create response
+            $response = [
+                'status' => 500,
+                'message' => 'Something went wrong'
+            ];
+        } finally {
+            return response()->json($response);
+        }
     }
 
     /**
-     * Get details of a topic
+     * Delete an existing course and all its related topics
      *
-     * @param Request $request
+     * @param $course_id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show_topic(Request $request)
+    public function delete($course_id)
     {
-        // Validate Request
-        $validator = Validator::make($request->all(), [
-            'id' => 'required|exists:topics'
-        ]);
+        $course = Course::find($course_id);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 400,
-                'errors' => $validator->errors(),
-                'message' => 'Bad request.'
-            ]);
+        // If course wasn't found abort request as 404
+        if (!$course) {
+            abort(404);
         }
 
-        return response()->json([
-            'status' => 200,
-            'data' => Topic::find($request->id)
-        ]);
-    }
+        try {
+            // Delete course and its topics
+            DB::transaction(function () use ($course) {
 
-    /**
-     * Get details of a sub topic
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function show_sub_topic(Request $request)
-    {
-        // Validate Request
-        $validator = Validator::make($request->all(), [
-            'id' => 'required|exists:sub_topics'
-        ]);
+                // Delete all topics belonging to course
+                Topic::where('course_id', $course->id)->delete();
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 400,
-                'errors' => $validator->errors(),
-                'message' => 'Bad request.'
-            ]);
+                // Delete the course
+                $course->delete();
+            });
+
+            $response = [
+                'status' => 200,
+                'message' => 'Course and its related topics deleted!'
+            ];
+        } catch (\Exception $e) {
+            // Log error
+
+            // create response
+            $response = [
+                'status' => 500,
+                'message' => 'Something went wrong'
+            ];
+        } finally {
+            return response()->json($response);
         }
-
-        return response()->json([
-            'status' => 200,
-            'data' => SubTopic::find($request->id)
-        ]);
     }
 }
