@@ -21,7 +21,7 @@ class TopicController extends Controller
         $topic = Topic::find($topic_id);
 
         // If topic wasn't found abort request as 404
-        if(!$topic) {
+        if (!$topic) {
             abort(404);
         }
 
@@ -35,7 +35,7 @@ class TopicController extends Controller
         unset($topic->course);
 
         // Persist Previous topic details if any
-        if($topic->topic) {
+        if ($topic->topic) {
             $topic->parent_topic = [
                 'id' => $topic->topic->id,
                 'name' => $topic->topic->name,
@@ -51,18 +51,36 @@ class TopicController extends Controller
         ]);
     }
 
+    /**
+     * Create a new topic
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function create(Request $request)
     {
         $parents_table = str_plural($request->parent);
 
-        // Validate request bag
+        // Validate Parent column
         $validator = Validator::make($request->all(), [
-            'parent' => 'bail | required | in:course,topic',
-            'parent_id' => "required | exists:$parents_table,id",
+            'parent' => 'required|in:course,topic',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Bad request',
+                'errors' => $validator->errors(),
+            ]);
+        }
+
+        // Validate other request field
+        $validator = Validator::make($request->all(), [
+            'parent_id' => "required|exists:$parents_table,id",
             'name' => [
                 'required',
                 'min:2',
-                Rule::unique('topics', 'name')->where(function ($query) use($request) {
+                Rule::unique('topics', 'name')->where(function ($query) use ($request) {
                     // If parent is topic, validate against all immediate children of the topic
                     $condition = $query->where("{$request->parent}_id", $request->parent_id);
 
@@ -98,6 +116,105 @@ class TopicController extends Controller
             $response = [
                 'status' => 200,
                 'topic' => $topic
+            ];
+        } catch (\Exception $e) {
+            // Log error
+
+            // create response
+            $response = [
+                'status' => 500,
+                'message' => 'Something went wrong'
+            ];
+        } finally {
+            return response()->json($response);
+        }
+    }
+
+    public function update($topic_id, Request $request)
+    {
+        $topic = Topic::find($topic_id);
+
+        // If topic wasn't found abort request as 404
+        if (!$topic) {
+            abort(404);
+        }
+
+        // Validate Parent column
+        $validator = Validator::make($request->all(), [
+            'parent' => 'required_without:name|required_with:parent_id|in:course,topic',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Bad request',
+                'errors' => $validator->errors(),
+            ]);
+        }
+
+        // Validate other request fields
+        $validator = Validator::make($request->all(), [
+            'parent_id' => "bail|required_with:parent|required_without:name|exists:{$request->parent}s,id" .
+                ($request->parent == 'topic' ? "|not_in:$topic->id" : ''),
+            'name' => [
+                'required_without_all:parent,parent_id',
+                'min:2',
+                Rule::unique('topics', 'name')->where(function ($query) use ($request, $topic) {
+                    // Derive which column and id to validate against
+                    $column = ($request->parent ?? ($topic->topic_id ? 'topic' : 'course')) . '_id';
+                    $id = $request->parent_id ?? ($topic->topic_id ?? $topic->course_id);
+
+                    if (!in_array($column, ['topic_id', 'course_id'])) {
+                        return;
+                    }
+
+                    // If parent is topic, validate against all immediate children of the topic
+                    $condition = $query->where($column, $id)->where('id', '!=', $topic->id);
+
+                    // if parent is course, validate against only immediate course's topics
+                    if ($column == 'course_id') {
+                        $condition = $condition->whereNull('topic_id');
+                    }
+
+                    return $condition;
+                })
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Bad request',
+                'errors' => $validator->errors(),
+            ]);
+        }
+
+        // Update topic
+        try {
+            $updated_topic = DB::transaction(function () use ($topic, $request) {
+                $data = [
+                    'name' => $request->name ?? $topic->name
+                ];
+
+                if ($request->has('parent')) {
+                    // Dynamically get the parent table (topics or courses)
+                    $parent = DB::table($request->parent . 's')->find($request->parent_id);
+
+                    // Update corresponding parent
+                    $data['course_id'] = ($request->parent == 'topic' ? $parent->course_id : $request->parent_id);
+                    $data['topic_id'] = ($request->parent == 'topic' ? $request->parent_id : null);
+                }
+
+                // Update instance of topic
+                $topic->update($data);
+
+                // Re-retrieve to get updated records (because of chained records)
+                return Topic::find($topic->id);
+            });
+
+            $response = [
+                'status' => 200,
+                'topic' => $updated_topic
             ];
         } catch (\Exception $e) {
             // Log error

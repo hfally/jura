@@ -58,9 +58,9 @@ class CourseController extends Controller
     {
         // Validate request bag
         $validator = Validator::make($request->all(), [
-            'title' => 'required | min:5 | unique:courses',
-            'course_code' => 'required | min:3 | unique:courses',
-            'description' => 'required | min:10',
+            'title' => 'required|min:5|unique:courses',
+            'course_code' => 'required|min:3|unique:courses',
+            'description' => 'required|min:10',
         ]);
 
         if ($validator->fails()) {
@@ -114,9 +114,9 @@ class CourseController extends Controller
 
         // Validate request bag (At least one of the fields must be provided)
         $validator = Validator::make($request->all(), [
-            'title' => "required_without_all:course_code,description | min:5 | unique:courses,title,$course->id",
-            'course_code' => "required_without_all:title,description | min:3 | unique:courses,course_code,$course->id",
-            'description' => 'required_without_all:title,course_code | min:10',
+            'title' => "required_without_all:course_code,description|min:5|unique:courses,title,$course->id",
+            'course_code' => "required_without_all:title,description|min:3|unique:courses,course_code,$course->id",
+            'description' => 'required_without_all:title,course_code|min:10',
         ]);
 
         if ($validator->fails()) {

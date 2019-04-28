@@ -13,14 +13,20 @@ class Topic extends Model
 
         // Update course id of all children topics if parent topic is updated
         self::updated(function ($topic) {
-            self::where('topic_id', $topic->id)->update([
-                'course_id' => $topic->course_id
-            ]);
+            // Run a loop because this event will not be triggered on a mass-update
+            foreach ($topic->sub_topics as $sub_topic) {
+                $sub_topic->update([
+                    'course_id' => $topic->course_id
+                ]);
+            }
         });
 
         // Delete all children topics if parent topic is being deleted
         self::deleting(function ($topic) {
-            self::where('topic_id', $topic->id)->delete();
+            // Run a loop because this event will not be triggered on a mass-update
+            foreach ($topic->sub_topics as $sub_topic) {
+                $sub_topic->delete();
+            }
         });
     }
 
