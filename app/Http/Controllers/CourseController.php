@@ -10,6 +10,26 @@ use Illuminate\Support\Facades\Validator;
 
 class CourseController extends Controller
 {
+    /*
+    |---------------------------------------------------
+    | Course Controller
+    |---------------------------------------------------
+    | This controller is in charge of creating, updating
+    | and deleting of specified courses.
+    |
+    | It is also responsible for getting all courses
+    | with their outlines; to the lowest level.
+    |
+    */
+
+    /**
+     * CourseController constructor.
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     /**
      * Get all courses with their topics and
      * corresponding sub topics

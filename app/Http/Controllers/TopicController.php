@@ -10,6 +10,26 @@ use Illuminate\Validation\Rule;
 
 class TopicController extends Controller
 {
+    /*
+    |---------------------------------------------------
+    | Topic Controller
+    |---------------------------------------------------
+    | This controller is in charge of creating, updating
+    | and deleting of specified topics.
+    |
+    | It is also responsible for getting specified topics;
+    | to the lowest level.
+    |
+    */
+
+    /**
+     * CourseController constructor.
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     /**
      * Get details of a particular topic
      *
