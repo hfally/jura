@@ -478,8 +478,10 @@ Delete a specified topic and consequentially delete all its sub-topics to avoid 
 ```
 
 #
-## STAGING BASE URL
-https://jura-api.herokuapp.com
+## STAGING
+**Base URL:** https://jura-api.herokuapp.com
+
+**AUTHORIZATION_KEY:** ZLjzbC0cPgMBeWsRrxXR3dadqEgaGfLW
 
 ## Author
 Henry Falade
