@@ -130,6 +130,13 @@ class TopicController extends Controller
         }
     }
 
+    /**
+     * Update specified topic
+     *
+     * @param $topic_id
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function update($topic_id, Request $request)
     {
         $topic = Topic::find($topic_id);
@@ -215,6 +222,39 @@ class TopicController extends Controller
             $response = [
                 'status' => 200,
                 'topic' => $updated_topic
+            ];
+        } catch (\Exception $e) {
+            // Log error
+
+            // create response
+            $response = [
+                'status' => 500,
+                'message' => 'Something went wrong'
+            ];
+        } finally {
+            return response()->json($response);
+        }
+    }
+
+    public function delete($topic_id)
+    {
+        $topic = Topic::find($topic_id);
+
+        // If topic wasn't found abort request as 404
+        if (!$topic) {
+            abort(404);
+        }
+
+        try {
+            // Delete topic and sub-topics
+            DB::transaction(function () use ($topic) {
+                // Delete the topic (Sub topic is deleted with an event in the model)
+                $topic->delete();
+            });
+
+            $response = [
+                'status' => 200,
+                'message' => 'Topic and its related topics deleted!'
             ];
         } catch (\Exception $e) {
             // Log error
