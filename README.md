@@ -1,4 +1,4 @@
-#JURA ONLINE - <small>CODING CHALLENGE</small>
+# JURA ONLINE - <small>CODING CHALLENGE</small>
 
 This is a course outline API. It has different endpoints aimed at providing an hierarchical, extremely flexible and detailed course outline tree with an infinite depth. Also, it has endpoints for creating, updating and deleting.
 
@@ -24,26 +24,26 @@ Follow the procedures listed below to setup the project locally:
 A basic security layer has been set on all available enpoints.
 **Authorization** header must be added to all requests.
 
-###Available Methods
+### Available Methods
 * GET - Fetch records
 * POST - Create records
 * PUT - Update specified records
 * DELETE - Delete specified records
 
-###Custom Status Codes
+### Custom Status Codes
 * 200 - Action carried out successfully
 * 400 - Bad request (An error caused by you)
 * 401 - Unauthorized actions (Authorization key wasnt provided or invalid)
 * 500 - You did everything right, but an error occurred (contact support)
 
-###Default Status Code
+### Default Status Code
 * 404 - Link not found (wrong url)
 * 500 - Something went wrong server-side (contact web master)
 
 #
 
 
-####COURSES
+#### COURSES
 Course is regarded as the peak of the tree with topics being each's children. Below are all course related endpoints.
 
 #
@@ -304,7 +304,7 @@ Be very sure of what you are doing while hitting this endpoint; not only does it
 
 #
 
-####TOPICS
+#### TOPICS
 
 Topics can be direct children of a course or children of another topic. Below are all topic related endpoints.
 
@@ -488,4 +488,4 @@ Henry Falade
 
 [Medium Posts](https://medium.com/@hfally)
 
-[hello@henryfalade.me](mailto:hello@henryfalade.me) | [+234 810 261 0381](tel:+2348102610381)
+[hello@henryfalade.me](mailto:hello@henryfalade.me) | +234 810 261 0381
