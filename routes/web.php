@@ -27,3 +27,6 @@ $router->get('topic/{topic_id}', 'TopicController@show');
 $router->post('topics/create', 'TopicController@create');
 $router->put('topics/update/{topic_id}', 'TopicController@update');
 $router->delete('topics/delete/{topic_id}', 'TopicController@delete');
+
+// BASIC LOCAL SETUP
+$router->get('local-setup/generate-keys', 'SetupController@generate');

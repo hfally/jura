@@ -20,6 +20,14 @@ Follow the procedures listed below to setup the project locally:
 * Run ``php artisan db:seed`` to populate the tables with dummy data
 * You can create a virtualhost using tools like EKNOR (https://github.com/hfally/eknor) or just run ``php artisan serve`` to make the API accessible.
 
+#### ENV VARIABLES
+
+For the sake of this demo, certain keys have been set by default in your env file: **APP_KEY** and **AUTHORIZATION_KEY**.
+
+Use `hGqTsUFpi9Ly1WxZDvk2hfVFy0FpyhWL` as your Authorization Header value for all requests.
+
+To reset this, visit `jura.staging/local-setup/generate-keys` on your browser.
+
 ## Endpoints
 A basic security layer has been set on all available enpoints.
 **Authorization** header must be added to all requests.
